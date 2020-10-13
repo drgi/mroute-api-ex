@@ -1,0 +1,32 @@
+{
+  "name": "mroute-api-ex",
+  "version": "1.0.0",
+  "description": "Api for Mroute",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drgi/mroute-api-ex.git"
+  },
+  "author": "Dr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/drgi/mroute-api-ex/issues"
+  },
+  "homepage": "https://github.com/drgi/mroute-api-ex#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.6.2",
+    "mongoose": "^5.10.9",
+    "multer": "^1.4.2",
+    "nodemon": "^2.0.4",
+    "uuid": "^8.3.1",
+    "validator": "^13.1.17"
+  }
+}

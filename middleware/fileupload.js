@@ -3,13 +3,13 @@ const fs = require('fs');
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
-        console.log(req.user)
-        const path = `./uploads/${req.user.name}_id`;
+        console.log('multer say', file)
+        const path = `./uploads/${req.user.name}_${req.user._id}`;
         fs.mkdirSync(path, {recursive:true})
         cb(null, path)
     },
     filename: (req, file, cb)=>{
-        const filename = `${req.user.name}.jpg`
+        const filename = `${Date.now()}.jpg`
         
         cb(null, filename )
     }

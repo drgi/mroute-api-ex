@@ -30,8 +30,25 @@ const userScheme = mongoose.Schema({
         required: true,
         minLength: 7
     },
+    bike: {
+        type: String
+    },
     avatar:{
         type: String
+    },
+    myRoutes: {
+        type: Array
+    },
+    favoriteRoute: {
+        type: Array
+    },
+    resetPasswordToken: {
+        type: String,
+        required: false
+    },
+    resetPasswordExp: {
+        type: Date,
+        required: false
     },
     tokens: [{
     token:{
@@ -70,15 +87,16 @@ userScheme.statics.FindUserForAuth = async (requestFromUser)=>{
 }
 userScheme.methods.GenerateToken = async function(){
     //Generete new token
-    const user = this;
-    
+    const user = this;    
     const token = jwt.sign({_id: user._id}, JWT_KEY)
-
     user.tokens = user.tokens.concat({token})
     console.log(token)
     await user.save()
     return token
 
+}
+userScheme.methods.generateTokenForPassReset = function() {
+    
 }
 
 const UserModel = mongoose.model('UserModel', userScheme)

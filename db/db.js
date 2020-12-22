@@ -4,7 +4,8 @@ const MONGO_URL = 'mongodb+srv://mroute:3946646@mroute.ae14d.mongodb.net/mroute?
 mongoosee.connect(MONGO_URL,{
     useNewUrlParser: true,
     useCreateIndex: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 }).catch(e=>{
     console.log(e)
 })

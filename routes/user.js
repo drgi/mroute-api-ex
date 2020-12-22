@@ -1,8 +1,9 @@
 const express = require('express');
-const upload = require('../middleware/fileupload')
+const avatarUpload = require('../middleware/avatarupload')
 
 const router = express.Router();
 const UserModel = require('../models/user')
+const RouteModel = require('../models/route')
 const auth = require('../middleware/auth');
 
 
@@ -20,32 +21,36 @@ router.use(function timeLog(req, res, next) {
 
 // GET wats user?
 router.get('/me', auth, async function(req, res) {
-  try{
-   console.log(req.user.avatar)
-    // res
-    // .send(JSON.stringify({user: req.user, message: 'Вы авторизироавнны',token: req.token}))
-    // .sendFile(req.user.avatar)
-    res.download(`./${req.user.avatar}`)
-
-  } catch(error){
-    res.status(401).send({error:error.message})
-  }
+console.log(req.user)
+const user = {
+  
+}
+res.status(200).json({message: 'good'})
   
 });
 
 //User profile change
-router.put('/me', auth, async (req, res)=>{
-
+router.patch('/me', auth, avatarUpload, async (req, res)=>{
+ if (req.files.avaFile){
+  req.body.avatar = req.files.avaFile[0].path
+ }
+ console.log('body:',req.user)
+ try {
+   const user = await UserModel.findByIdAndUpdate(req.user.id, {...req.body} ,{new: true, lean: true}).select('-password -tokens')
+   console.log(user)
+   user.token = req.token
+   res.status(200).json(user)
+ } catch(e){console.log(e)}
 })
 
 ///FIle Upload(avatar img)
-router.post('/me',auth, upload.any(),async (req, res)=>{
-  
-  console.log(req.files)
-  req.user.avatar = req.files[0].path
-  await req.user.save()
+// router.post('/me',auth, upload.array('files', 5),async (req, res)=>{
+//   console.log(req.body)
+//   console.log(req.files)
+//   req.user.avatar = req.files[0].path
+//   await req.user.save()
 
-})
+// })
 
 // POST login route
 router.post('/login',async (req, res)=> {
@@ -100,12 +105,27 @@ router.get('/logoutall', auth, async (req, res)=>{
   try{
     req.user.tokens.splice(0,req.user.tokens.length)
     await req.user.save()
-    res.status(401).send(JSON.stringify({message: 'Вы вышли из системы!'}))
+    res.status(200).send(JSON.stringify({message: 'Вы вышли из системы!'}))
   } catch(err){
     res.status(500).send(JSON.stringify(err))
   }
 })
+//Get UserRoutes
+router.get('/myroutes', auth, async (req, res) => {
+  //console.log('User',req.user)
+  const routeIds = req.user.myRoutes.map(route => route.routeId)
+  try {
+    const docs = await RouteModel.find({_id: routeIds}).lean().select('nameTranslit name description avatar')
+    console.log(docs)
+    if (docs.length > 0){
+      res.status(200).json(docs)
+    } else {
+      res.status(200).json([])
+    }
 
+  }catch(e){console.log(e)}
+ 
+})
 
 
 

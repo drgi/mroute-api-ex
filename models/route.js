@@ -58,7 +58,11 @@ const routemodel = mongoose.Schema({
         author: String,
         date: Date
     }],
-    date: Date
+    date: Date,
+    isDraft: {
+        type: Boolean
+        
+    }
 
 })
 

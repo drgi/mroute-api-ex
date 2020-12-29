@@ -3,6 +3,8 @@ const validator = require('validator')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { request } = require('express')
+const crypto = require('crypto')
+
 
 const JWT_KEY = 'HuiVamVsem2020'
 
@@ -30,8 +32,25 @@ const userScheme = mongoose.Schema({
         required: true,
         minLength: 7
     },
+    bike: {
+        type: String
+    },
     avatar:{
         type: String
+    },
+    myRoutes: {
+        type: Array
+    },
+    favoriteRoute: {
+        type: Array
+    },
+    resetPasswordToken: {
+        type: String,
+        required: false
+    },
+    resetPasswordExp: {
+        type: Date,
+        required: false
     },
     tokens: [{
     token:{
@@ -44,13 +63,14 @@ const userScheme = mongoose.Schema({
 })
 userScheme.pre('save', function(next){
    const user = this
+   if (!user.isModified('password')) {return next()}
    bcrypt.genSalt(10,(err, salt)=>{
        bcrypt.hash(user.password, salt, (err, hash)=>{
+           console.log(user)
            user.password = hash
+            next()
        } )
    })
-    next()
-
 })
 userScheme.statics.FindUserForAuth = async (requestFromUser)=>{
     console.log('Функ работает',requestFromUser)
@@ -70,16 +90,29 @@ userScheme.statics.FindUserForAuth = async (requestFromUser)=>{
 }
 userScheme.methods.GenerateToken = async function(){
     //Generete new token
-    const user = this;
-    
+    const user = this;    
     const token = jwt.sign({_id: user._id}, JWT_KEY)
-
     user.tokens = user.tokens.concat({token})
     console.log(token)
     await user.save()
     return token
 
 }
+userScheme.methods.generateTokenForPassReset = function() {
+    this.resetPasswordToken = crypto.randomBytes(20).toString('hex')
+    this.resetPasswordExp = Date.now() + 3600000
+   
+}
+userScheme.methods.generateTempPassword = function() {
+    this.password = crypto.randomBytes(5).toString('hex')
+    this.resetPasswordToken = undefined
+    this.resetPasswordExp = undefined
+    this.tokens = []
+}
+userScheme.methods.changePassword = function(newPass) {
+    this.password = newPass
+}
+
 
 const UserModel = mongoose.model('UserModel', userScheme)
 module.exports = UserModel

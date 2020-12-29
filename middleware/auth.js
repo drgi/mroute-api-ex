@@ -23,7 +23,7 @@ const auth = async (req, res, next)=>{
     req.token = token
     next()
     }catch(e){
-        res.status(401).send({error: error.message})
+        res.status(401).send({error: e.message})
     }
 
 }

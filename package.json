@@ -20,12 +20,18 @@
   "dependencies": {
     "bcrypt": "^5.0.0",
     "cors": "^2.8.5",
+    "crypto-js": "^4.0.0",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.2",
     "mongoose": "^5.10.9",
     "multer": "^1.4.2",
+    "nodemailer": "^6.4.17",
+    "nodemailer-express-handlebars": "^4.0.0",
     "nodemon": "^2.0.4",
+    "rimraf": "^3.0.2",
+    "transliteration": "^2.2.0",
     "uuid": "^8.3.1",
     "validator": "^13.1.17"
   }

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const { request } = require('express')
 const crypto = require('crypto')
 
+
 const JWT_KEY = 'HuiVamVsem2020'
 
 
@@ -70,8 +71,6 @@ userScheme.pre('save', function(next){
             next()
        } )
    })
-   
-
 })
 userScheme.statics.FindUserForAuth = async (requestFromUser)=>{
     console.log('Функ работает',requestFromUser)
@@ -113,6 +112,7 @@ userScheme.methods.generateTempPassword = function() {
 userScheme.methods.changePassword = function(newPass) {
     this.password = newPass
 }
+
 
 const UserModel = mongoose.model('UserModel', userScheme)
 module.exports = UserModel

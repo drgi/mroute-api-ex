@@ -14,7 +14,7 @@ async function saveFile(req, res, next) {
         switch(file){
             case 'routeImages' :
                 const routeImages = files[file]
-                let dirPath = path.normalize(`public/routes/${req.route.nameTranslit}/routeimages/`)
+                let dirPath = path.normalize(`public/routes/${req.route._id}/routeimages/`)
                 for (let image of routeImages){
                     let filePath = dirPath + Date.now() + '.jpg'
                     console.log(filePath)
@@ -27,7 +27,7 @@ async function saveFile(req, res, next) {
                 break
             case 'pointImages' :
                 const pointImages = files[file]
-                let dirPath2 = path.normalize(`public/routes/${req.route.nameTranslit}/pointimages/`)
+                let dirPath2 = path.normalize(`public/routes/${req.route._id}/pointimages/`)
                 console.log(files[file])
                 for (let image of pointImages) {
                     let pointDir = path.normalize(dirPath2 + image.originalname + '/')

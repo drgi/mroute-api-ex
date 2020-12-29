@@ -15,7 +15,7 @@ const port = 3000
 
 app.use('/public', static)
 
-app.use(express.json())
+app.use(express.json({limit: '10mb'}))
 
 app.use(cors())
 

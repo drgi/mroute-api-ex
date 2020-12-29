@@ -113,11 +113,25 @@ router.get('/logoutall', auth, async (req, res)=>{
 })
 //Get UserRoutes
 router.get('/myroutes', auth, async (req, res) => {
-  //console.log('User',req.user)
-  const routeIds = req.user.myRoutes.map(route => route.routeId)
   try {
-    const docs = await RouteModel.find({_id: routeIds}).lean().select('nameTranslit name description avatar')
-    console.log(docs)
+    //const docs = await RouteModel.find({_id: routeIds}).lean().select('nameTranslit name description avatar')
+    const docs = await RouteModel.find({'author.email': req.user.email, isDraft: false}).lean().select('nameTranslit name description avatar')
+   // console.log('docs2', docs2)
+    if (docs.length > 0){
+      res.status(200).json(docs)
+    } else {
+      res.status(200).json([])
+    }
+
+  }catch(e){console.log(e)}
+ 
+})
+// Get user routedrafts
+router.get('/myroutedrafts', auth, async (req, res) => {
+  try {
+    //const docs = await RouteModel.find({_id: routeIds}).lean().select('nameTranslit name description avatar')
+    const docs = await RouteModel.find({'author.email': req.user.email, isDraft: true}).lean().select('nameTranslit name description avatar')
+   // console.log('docs2', docs2)
     if (docs.length > 0){
       res.status(200).json(docs)
     } else {

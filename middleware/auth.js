@@ -7,7 +7,6 @@ const auth = async (req, res, next)=>{
     //console.log(token)
     const decoded = jwt.verify(token, JWT_KEY,(err, decoded)=>{
         if(err){
-
            res.status(401).send({error:'Invalid Token'})
         }
         return decoded
@@ -23,7 +22,7 @@ const auth = async (req, res, next)=>{
     req.token = token
     next()
     }catch(e){
-        res.status(401).send({error: e.message})
+       return res.status(401).send({error: e.message})
     }
 
 }

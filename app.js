@@ -4,6 +4,7 @@ const app = express()
 ////Routes 
 const user = require('./routes/user')
 const route = require('./routes/route')
+const convertRoute = require('./routes/convertroute')
 //Static file
 const static = express.static(__dirname + '/public')
 
@@ -21,6 +22,7 @@ app.use(cors())
 
 app.use('/user', user)
 app.use('/route', route)
+app.use('/convertroute', convertRoute)
 
 
 

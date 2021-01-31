@@ -12,12 +12,13 @@ const storage = multer.diskStorage({
         const filename = `${Date.now()}.jpg`
         
         cb(null, filename )
-    }
-   
+    } 
 
 })
-
-
+const fileFilter = function(req, file, cb) {
+    console.log(file)
+    cb(null, true)
+}
 const upload = multer({storage: storage});
 
 

@@ -112,6 +112,17 @@ userScheme.methods.generateTempPassword = function() {
 userScheme.methods.changePassword = function(newPass) {
     this.password = newPass
 }
+userScheme.methods.responseData = function() {
+    const user = {
+        avatar: this.avatar,
+        bike: this.bike,
+        email: this.email,
+        favoriteRoute: this.favoriteRoute,
+        name: this.name,
+        _id: this._id
+    }
+    return user
+}
 
 
 const UserModel = mongoose.model('UserModel', userScheme)

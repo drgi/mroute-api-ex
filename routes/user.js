@@ -8,6 +8,7 @@ const auth = require('../middleware/auth');
 
 const transporter = require('../utils/mailer/mailer')
 
+require('dotenv').config()
 
 
 
@@ -15,18 +16,13 @@ const transporter = require('../utils/mailer/mailer')
 // middleware that is specific to this router
 router.use(function timeLog(req, res, next) {
   console.log('Time: ', Date.now());
-  
- // console.log(req.body)
  next();
 });
 
 // GET wats user?
 router.get('/me', auth, async function(req, res) {
-console.log(req.user)
-const user = {
-  
-}
-res.status(200).json({message: 'good'})
+const user = req.user.responseData()
+res.status(200).json({user, token: req.token, message: `Здравствуйте, ${user.name}`})
   
 });
 
@@ -35,12 +31,13 @@ router.patch('/me', auth, avatarUpload, async (req, res)=>{
  if (req.files.avaFile){
   req.body.avatar = req.files.avaFile[0].path
  }
- console.log('body:',req.user)
+ //console.log('body:',req.user)
  try {
-   const user = await UserModel.findByIdAndUpdate(req.user.id, {...req.body} ,{new: true, lean: true}).select('-password -tokens')
-   console.log(user)
+   const user = await UserModel.findByIdAndUpdate(req.user.id, {...req.body} ,{new: true, lean: false}).select('-password -tokens')
+   //console.log(user)
    user.token = req.token
-   res.status(200).json(user)
+   const responseUserData = user.responseData()
+   res.status(200).json({user: responseUserData, token: req.token})
  } catch(e){console.log(e)}
 })
 
@@ -63,7 +60,8 @@ router.post('/login',async (req, res)=> {
      res.status(401).send(JSON.stringify({error: 'Ошибка Авторизации'}))
  }
  const token = await user.GenerateToken()
- res.status(200).send(JSON.stringify({user, token}))
+ const responseUserData = user.responseData()
+ res.status(200).send(JSON.stringify({user: responseUserData, token}))
 
 } catch(error){
     console.log(error)
@@ -76,8 +74,9 @@ router.post('/singup',async (req, res)=>{
     console.log(req.body)
     const user = new UserModel(req.body)
     await user.save()
-    const token = await user.GenerateToken()
-    res.status(201).send(JSON.stringify({user, token, message:'Вы успешно зарегестрированны!'}))
+    const token = await user.GenerateToken()    
+    const responseUserData = user.responseData()
+    res.status(201).send(JSON.stringify({user: responseUserData, token, message:'Вы успешно зарегестрированны!'}))
     } catch(error){
        
        if(error.driver){
@@ -130,8 +129,8 @@ router.get('/myroutes', auth, async (req, res) => {
 router.get('/myroutedrafts', auth, async (req, res) => {
   try {
     //const docs = await RouteModel.find({_id: routeIds}).lean().select('nameTranslit name description avatar')
-    const docs = await RouteModel.find({'author.email': req.user.email, isDraft: true}).lean().select('nameTranslit name description avatar')
-   // console.log('docs2', docs2)
+    const docs = await RouteModel.find({'author.email': req.user.email, isDraft: true}).lean().select('nameTranslit name description avatar').sort({dateCreation: -1})
+    console.log('drafts:', docs)
     if (docs.length > 0){
       res.status(200).json(docs)
     } else {
@@ -210,7 +209,9 @@ router.get('/resetpassword', async (req, res) => {
           console.log('Email not send',err)
         } else {
           console.log('Email с новым паролем вроде отправлен')
-          res.status(200).json({message: `Вам на почту ${user.email} отравлено письмо с новым паролем пароля!`})
+          //res.status(200).json({message: `Вам на почту ${user.email} отравлено письмо с новым паролем пароля!`})
+          const url = process.env.FRONT_HOST + `/login?message=Вам на почту ${user.email} отравлено письмо с новым паролем пароля!`
+          res.status(200).redirect(url)
         }
       })
     })

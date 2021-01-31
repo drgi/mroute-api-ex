@@ -112,7 +112,19 @@ const routemodel = mongoose.Schema({
         author: String,
         date: Date
     }],
-    date: Date,
+    dateCreation: {
+        type: Date,
+        default: Date.now()
+    },
+    datePublic: {
+        type: Date,
+        default: function() {
+            if (!this.isDraft) {
+                return Date.now()
+            }
+            return null
+        }
+    },
     isDraft: {
         type: Boolean
 
@@ -137,11 +149,6 @@ routemodel.statics.findRouteByNameTranslit = async (nameTranslit) => {
     }
     return null 
 }
-
-routemodel.statics.checkAuthor = async (routeId, userId) => {
-        
-}
-
 routemodel.statics.testName = async (nameTranslit) => {
     const route = await RouteModel.findOne({nameTranslit})
      
@@ -149,6 +156,9 @@ routemodel.statics.testName = async (nameTranslit) => {
         throw {message: 'Маршрут с таким названием уже есть в базе'}
     }
     return true 
+}
+routemodel.methods.routePath = function() {
+    return path.resolve(__dirname, `../public/routes/${this._id}`)
 }
 routemodel.methods.mkRouteDirectory = function(){
     if (!this._id) return false
@@ -200,9 +210,18 @@ routemodel.methods.deletePointImage = function(file){
             return true      
                                
         })
+    }   
+}
+routemodel.methods.deletePoint = function(pointId) {
+    const pointPath = this.routePath() + `\\pointimages\\${pointId}`
+    console.log('pointPath: ', pointPath)
+    if (fs.existsSync(pointPath)){
+        rimRaf.sync(pointPath)
+        console.log('point deleted')
     }
-   
-    
+    this.points = this.points.filter(point => point.id !== pointId)
+    this.markModified('points')
+    return true
 }
 routemodel.methods.uploadFiles = function(files, pointId=null){
     let filePaths = []

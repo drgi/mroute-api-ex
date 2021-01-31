@@ -20,10 +20,23 @@ router.use(function timeLog(req, res, next) {
    next();
   });
 
-  router.get('/', async (req, res)=>{
+  router.post('/', async (req, res)=>{
+      //1 Определить, запрос, если пустой вернуть по новой дате
+      //2 Распарсить запрос, создать обЪект для запроса
+      //3 Вернуть найденное или сообшение не найдено
+      console.log('Routes Query:', req.body)
+      const params = req.body      
+      const queryParams = {isDraft: false}
+      if (!params.noParams) {
+        for (let key in params) {
+            if (params[key]) {
+                queryParams[key] = key === 'name' ? {$regex: params[key], $options: 'i'} : params[key]                 
+            }
+        }
+      } 
+      console.log('To base query:', queryParams)
         try {
-            const routes = await RouteModel.find({isDraft: false}).lean().select('nameTranslit name description avatar')
-            console.log(routes)
+            const routes = await RouteModel.find(queryParams).lean().select('nameTranslit name description avatar')
             res.status(200).send(JSON.stringify(routes))
         } catch (err){
             console.log(err)
@@ -251,5 +264,26 @@ router.delete('/pointimages/del', async (req, res) => {
             console.log(route.points[0].images)
             res.status(200).json({pointImages: images, message: 'Файл удален'})                
         }        
+})
+// Удаление точки маршута и папки точки
+router.delete('/point/del', async (req, res) => {
+    console.log(req.body)    
+    //1 Найти в базе
+    let route;
+    try {
+        route = await RouteModel.findById(req.body.routeId)
+        if (!route) {
+            throw {message: 'Маршрут не найден на сервере, возможно вы его не создали?'}
+        }
+    } catch (e) {
+        console.log(e)
+        return res.status(200).json(e)
+    }
+    //2 Сделать метод в модели по удалению папки и из массива точек
+    if (route.deletePoint(req.body.pointId)) {
+        route.save({validateBeforeSave: false})
+        return res.status(200).json({message: 'Точка удалена'})
+    }
+    return res.status(200)
 })
 module.exports = router;

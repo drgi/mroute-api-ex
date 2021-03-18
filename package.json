@@ -4,8 +4,9 @@
   "description": "Api for Mroute",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js"
+    "test": "jest",
+    "dev": "nodemon app.js",
+    "start": "nodemon ./bin/www"
   },
   "repository": {
     "type": "git",
@@ -13,12 +14,16 @@
   },
   "author": "Dr",
   "license": "ISC",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "bugs": {
     "url": "https://github.com/drgi/mroute-api-ex/issues"
   },
   "homepage": "https://github.com/drgi/mroute-api-ex#readme",
   "dependencies": {
     "bcrypt": "^5.0.0",
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "crypto-js": "^4.0.0",
     "dotenv": "^8.2.0",
@@ -30,10 +35,15 @@
     "nodemailer": "^6.4.17",
     "nodemailer-express-handlebars": "^4.0.0",
     "nodemon": "^2.0.4",
+    "rc": "^1.2.8",
     "rimraf": "^3.0.2",
     "transliteration": "^2.2.0",
     "uuid": "^8.3.1",
     "validator": "^13.1.17",
     "xmlbuilder": "^15.1.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3",
+    "supertest": "^6.1.3"
   }
 }

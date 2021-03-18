@@ -5,8 +5,11 @@ const router = express.Router();
 const UserModel = require('../models/user');
 const RouteModel = require('../models/route');
 const auth = require('../middleware/auth');
+const { verifyJWTMiddleware } = require('../components/auth');
 
 const transporter = require('../utils/mailer/mailer');
+
+const { getUserProfileById } = require('../components/user');
 
 require('dotenv').config();
 
@@ -17,11 +20,18 @@ router.use(function timeLog(req, res, next) {
 });
 
 // GET wats user?
-router.get('/me', auth, async function (req, res) {
-  const user = req.user.responseData();
-  res
-    .status(200)
-    .json({ user, token: req.token, message: `Здравствуйте, ${user.name}` });
+router.get('/me', verifyJWTMiddleware, async function (req, res) {
+  const { userId, authError } = req;
+  if (authError) {
+    return res.status(401).json({ error: 'Вы не авторизированны' });
+  }
+  const result = await getUserProfileById(userId);
+  if (result.error) {
+    return res.status(400).json({ error: result.error });
+  }
+  if (result.user) {
+    return res.status(200).json({ user: result.user });
+  }
 });
 
 //User profile change
@@ -79,15 +89,13 @@ router.post('/singup', async (req, res) => {
     await user.save();
     const token = await user.GenerateToken();
     const responseUserData = user.responseData();
-    res
-      .status(201)
-      .send(
-        JSON.stringify({
-          user: responseUserData,
-          token,
-          message: 'Вы успешно зарегестрированны!',
-        })
-      );
+    res.status(201).send(
+      JSON.stringify({
+        user: responseUserData,
+        token,
+        message: 'Вы успешно зарегестрированны!',
+      })
+    );
   } catch (error) {
     if (error.driver) {
       res
@@ -104,7 +112,9 @@ router.post('/logout', auth, async (req, res) => {
   try {
     req.user.tokens = req.user.tokens.filter((token) => token != req.token);
     await req.user.save();
-    res.status(401).send(JSON.stringify({ message: 'Вы вышли из системы!' }));
+    return res
+      .status(401)
+      .send(JSON.stringify({ message: 'Вы вышли из системы!' }));
   } catch (err) {
     res.status(500).send(JSON.stringify(err));
   }
@@ -192,11 +202,9 @@ router.post('/forgotpass', async (req, res) => {
           console.log('Email not send', err);
         } else {
           console.log('Email вроде отправлен');
-          res
-            .status(200)
-            .json({
-              message: `Вам на почту ${user.email} отравлено письмо для смены пароля!`,
-            });
+          res.status(200).json({
+            message: `Вам на почту ${user.email} отравлено письмо для смены пароля!`,
+          });
         }
       });
     })

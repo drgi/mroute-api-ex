@@ -1,4 +1,6 @@
 const UserModel = require('../../models/user');
+const jwt = require('jsonwebtoken');
+const { JWT } = require('../../config/');
 
 async function addUser(newUser) {
   const user = new UserModel(newUser);
@@ -23,4 +25,11 @@ function cookieParser(cookie) {
   return Object.fromEntries(entries);
 }
 
-module.exports = { addUser, removeUsedByEmail, cookieParser };
+function generateJWTToken(userId, expired = null) {
+  const token = jwt.sign({ userId }, JWT.secret, {
+    expiresIn: expired || JWT.expired,
+  });
+  return token;
+}
+
+module.exports = { addUser, removeUsedByEmail, cookieParser, generateJWTToken };

@@ -12,25 +12,20 @@ const transportConfig = {
     pass: process.env.MAIL_PASS,
   },
 };
+
 const handlebarsOptions = {
   viewEngine: {
     extname: 'handlebars',
-    layoutsDir: './utils/mailer/tamplates',
-    partialsDir: './utils/mailer/tamplates',
+    layoutsDir: './components/user/mailer/tamplates',
+    partialsDir: './components/user/mailer/tamplates',
     defaultLayout: 'template',
   },
-  viewPath: './utils/mailer/tamplates',
+  viewPath: './components/user/mailer/tamplates',
   extName: '.html',
 };
 
 const transporter = nodemailer.createTransport(transportConfig);
 
 transporter.use('compile', hbs(handlebarsOptions));
-// transporter.verify(function(err, success) {
-//     if (err) {
-//         console.log('SMTP Error: ',err)
-//     } else {
-//         console.log('SMTP is Ready')
-//     }
-// })
+
 module.exports = transporter;

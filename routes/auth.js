@@ -83,7 +83,7 @@ router.get('/logout', verifyJWTMiddleware, async (req, res) => {
 });
 
 router.get('/logoutall', verifyJWTMiddleware, async (req, res) => {
-  console.log('Logoutall cookie: ', req.cookies);
+  //console.log('Logoutall cookie: ', req.cookies);
   if (req.authError) {
     return res.status(401).json({ error: req.authError });
   }
@@ -105,7 +105,7 @@ router.get('/logoutall', verifyJWTMiddleware, async (req, res) => {
 });
 
 router.get('/refreshtoken', async (req, res) => {
-  console.log('refreshtoken cookie: ', req.cookies);
+  //console.log('refreshtoken cookie: ', req.cookies);
   const { refreshToken } = req.cookies;
   if (!refreshToken) {
     return res.status(401).json({ error: 'Нет токена в запросе' });

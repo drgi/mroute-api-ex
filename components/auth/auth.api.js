@@ -124,16 +124,24 @@ const refreshJWTToken = async (refreshToken) => {
   return result;
 };
 const verifyJWTMiddleware = async (req, res, next) => {
-  const token = req.header('Authorization').replace('Bearer ', '');
+  const authHeader = req.header('Authorization');
+  if (!authHeader) {
+    req.authError = `В запросе нет заголовка Authorization`;
+    next();
+    return;
+  }
+  const token = authHeader.replace('Bearer ', '');
   const { userId, error } = verifyJWT(token);
   if (error) {
     req.authError = error;
     next();
+    return;
   }
   if (userId) {
     req.authError = null;
     req.userId = userId;
     next();
+    return;
   }
 };
 module.exports = {

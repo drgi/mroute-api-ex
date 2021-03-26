@@ -32,10 +32,6 @@ const getUserProfileById = async (userId) => {
 
 const getUserRoute = async (userId, params) => {
   const result = { error: null };
-  if (!validateId(userId)) {
-    result.error = `Id ${userId}, не верного формата`;
-    return result;
-  }
   const userEmail = await getUserEmailById(userId);
   if (!userEmail) {
     result.error = `Пользователя с ${userId}, нет в БД или Id не верный`;
@@ -48,10 +44,6 @@ const getUserRoute = async (userId, params) => {
 
 const getUserRouteDrafts = async (userId) => {
   const result = { error: null };
-  if (!validateId(userId)) {
-    result.error = `Id ${userId}, не верного формата`;
-    return result;
-  }
   const userEmail = await getUserEmailById(userId);
   if (!userEmail) {
     result.error = `Пользователя с ${userId}, нет в БД или Id не верный`;
@@ -109,12 +101,14 @@ const resetUserPassword = async (key) => {
 
   return { succes: 'ok' };
 };
+
 // MiddleWare
 const parseFormDataAndFile = (req, res, next) => {
   formDataParser(req, res, (err) => {
     if (err) {
       // Случилась ошибка Multer при загрузке.
       console.log('Multer Error', err);
+      next(err);
     }
     next();
     return;

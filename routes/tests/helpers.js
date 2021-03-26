@@ -5,6 +5,7 @@ const { JWT } = require('../../config/');
 async function addUser(newUser) {
   const user = new UserModel(newUser);
   await user.save();
+  return user;
 }
 
 async function removeUsedByEmail(email) {

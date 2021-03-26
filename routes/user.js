@@ -173,12 +173,11 @@ router.get('/myroutes', verifyJWTMiddleware, async (req, res) => {
     const { routes } = result;
     return res.status(200).json(routes);
   } catch (err) {
-    console.log('Error on Route /myroutes: ', err);
     return res.status(400).json({ error: err.message });
   }
 });
 // Get user routedrafts
-router.get('/myroutedrafts', verifyJWTMiddleware, async (req, res) => {
+router.get('/myroutedrafts', verifyJWTMiddleware, async (req, res, next) => {
   const { userId, authError } = req;
   if (authError) {
     return res.status(401).json({ error: authError });
@@ -191,8 +190,7 @@ router.get('/myroutedrafts', verifyJWTMiddleware, async (req, res) => {
     const { routes } = result;
     return res.status(200).json(routes);
   } catch (err) {
-    console.log('Error on Route /myroutes: ', err);
-    return res.status(400).json({ error: err.message });
+    next(err);
   }
 });
 // Forgot Password
@@ -239,82 +237,6 @@ router.get('/resetpassword', async (req, res) => {
     console.log('/resetPassword Error', err);
     return res.status(500).json({ error: 'Unknown Server Error' });
   }
-
-  //1. Запрос в базе по ключу и проверка срока действия
-  // const user = await UserModel.findOne({
-  //   resetPasswordToken: req.query.key,
-  //   resetPasswordExp: { $gt: Date.now() },
-  // });
-  // if (!user) {
-  //   console.log('User not Found or Expired');
-  //   return res
-  //     .status(401)
-  //     .json({ message: 'Пользователь не найден или итек срок' });
-  // }
-  // //2. Генерация нового пароля и сброс всех токенов
-  // user.generateTempPassword();
-  // console.log(user);
-  // const mailData = {
-  //   to: user.email,
-  //   from: 'mail@moto-route.ru',
-  //   template: 'reset-password-email',
-  //   subject: 'Новый пароль',
-  //   context: {
-  //     email: user.email,
-  //     name: user.name,
-  //     password: user.password,
-  //   },
-  // };
-  // //3. Запись в базу и составить шаблон письма
-  // user
-  //   .save()
-  //   .then((user) => {
-  //     transporter.sendMail(mailData, function (err) {
-  //       if (err) {
-  //         console.log('Email not send', err);
-  //       } else {
-  //         console.log('Email с новым паролем вроде отправлен');
-  //         //res.status(200).json({message: `Вам на почту ${user.email} отравлено письмо с новым паролем пароля!`})
-  //         const url =
-  //           process.env.FRONT_HOST +
-  //           `/login?message=Вам на почту ${user.email} отравлено письмо с новым паролем пароля!`;
-  //         res.status(200).redirect(url);
-  //       }
-  //     });
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   });
-  //4. Если все ок отправка письма и статус 200 и редирект на мотороут
-});
-router.post('/changepassword', auth, async (req, res) => {
-  console.log('Body', req.body);
-  //1. Найти юзера в базу и сверить старый пароль
-  let user = null;
-  try {
-    user = await UserModel.FindUserForAuth({
-      email: req.body.email,
-      password: req.body.oldPass,
-    });
-    console.log(user);
-  } catch (error) {
-    console.log(error);
-    res.status(400).send(JSON.stringify({ message: error.message }));
-  }
-  //2. Сменить пароль
-  if (user) {
-    user.changePassword(req.body.newPass);
-  }
-  //3. Сохранить в базе и ответить клиенту
-  user
-    .save()
-    .then((user) => {
-      res.status(200).json({ message: 'Ваш пароль успешно изменен!' });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(400).json({ message: 'Ошибка не сервере' });
-    });
 });
 
 module.exports = router;

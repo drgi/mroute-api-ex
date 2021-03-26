@@ -1,5 +1,6 @@
 const authApi = require('../auth.api');
 const connectToDB = require('../../../db/db');
+const AuthError = require('../auth.error');
 const mongoose = require('mongoose');
 const dbURL = 'mongodb://localhost:27017/mroute-tests';
 let db;
@@ -44,10 +45,11 @@ describe('Register test', () => {
       password: '123456',
       name: 'TestUser',
     };
-    const result = await authApi.register(newUser);
-    expect(result.error).toBe(
-      'Пользователь с andrey_pushkin@mail.ru уже зарегестрирован.'
-    );
+    try {
+      const result = await authApi.register(newUser);
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+    }
   });
 
   test('Register new User without required field', async () => {
@@ -56,8 +58,12 @@ describe('Register test', () => {
       password: '123456',
       name: 'TestUser',
     };
-    const result = await authApi.register(newUser);
-    expect(result.error).toBe(`Обязательных полей email нет в запросе.`);
+
+    try {
+      const result = await authApi.register(newUser);
+    } catch (err) {
+      expect(err).toBeInstanceOf(AuthError);
+    }
   });
 });
 
@@ -73,16 +79,26 @@ describe('Login test', () => {
 
   test('Login function with ivalid Password', async () => {
     const credential = { email: 'andrey_pushkin@mail.ru', password: 'invalid' };
-    const result = await authApi.login(credential.email, credential.password);
-    expect(result.error).toBe(`Не верный пароль!`);
+    try {
+      const result = await authApi.login(credential.email, credential.password);
+    } catch (err) {
+      expect(err).toBeInstanceOf(AuthError);
+      expect(err).toHaveProperty('message', `Не верный пароль!`);
+    }
   });
 
   test('Login function with ivalid Email', async () => {
     const credential = { email: 'invalid@mail.ru', password: '123456' };
-    const result = await authApi.login(credential.email, credential.password);
-    expect(result.error).toBe(
-      `Пользователь с ${credential.email} не найден в базе.`
-    );
+
+    try {
+      const result = await authApi.login(credential.email, credential.password);
+    } catch (err) {
+      expect(err).toBeInstanceOf(AuthError);
+      expect(err).toHaveProperty(
+        'message',
+        `Пользователь с ${credential.email} не найден в базе.`
+      );
+    }
   });
 });
 
@@ -102,7 +118,14 @@ describe('Logout', () => {
     expect(result.error).toBeNull();
     const id = 'invalid';
     const { refreshToken } = result;
-    const logout = await authApi.logout(id, refreshToken);
-    expect(logout.error).toBe(`Пользователь с ${id} не найден.`);
+    try {
+      const logout = await authApi.logout(id, refreshToken);
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+      expect(err).toHaveProperty(
+        'message',
+        'Cast to ObjectId failed for value "invalid" at path "_id" for model "UserModel"'
+      );
+    }
   });
 });

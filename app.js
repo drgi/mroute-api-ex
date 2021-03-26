@@ -9,6 +9,8 @@ const user = require('./routes/user');
 const route = require('./routes/route');
 const convertRoute = require('./routes/convertroute');
 const auth = require('./routes/auth');
+//Error handler
+const { errorHandler } = require('./components/errorHandlers');
 //Static file
 const statics = express.static(__dirname + '/public');
 const front = express.static(__dirname + '/static');
@@ -34,6 +36,15 @@ app.use('/auth', auth);
 app.use('/user', user);
 app.use('/route', route);
 app.use('/convertroute', convertRoute);
+// Error handler
+app.use((err, req, res, next) => {
+  const error = errorHandler(err);
+  console.log('Error handler', error);
+  if (!error) {
+    return res.status(500).json({ error: 'Uknown error:)))))' });
+  }
+  res.status(error.code).json({ error: error.message });
+});
 
 // app.listen(port, () => {
 //   console.log(`Mroute api run on http://localhost:${port}`);

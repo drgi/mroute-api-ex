@@ -17,7 +17,7 @@ const getUserEmailById = async (id) => {
     return user.email;
   } catch (err) {
     console.log('User DB module error', err.message);
-    return null;
+    throw err;
   }
 };
 

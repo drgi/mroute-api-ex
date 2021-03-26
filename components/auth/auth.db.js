@@ -9,10 +9,9 @@ const findUserById = async (id) => {
     const user = await UserModel.findById(id);
     return user;
   } catch (error) {
-    //console.log('Find error', error);
-    return null;
+    //console.log('Find error', error.constructor.name);
+    throw error;
   }
-  return user;
 };
 const registerNewUser = (newUser) => {
   const user = new UserModel(newUser);

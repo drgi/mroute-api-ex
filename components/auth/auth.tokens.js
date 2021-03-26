@@ -10,16 +10,14 @@ const generateRefreshToken = () => {
   const refreshToken = crypto.randomBytes(20).toString('hex');
   return refreshToken;
 };
-const verifyJWT = (token) => {
-  const result = { error: null };
+const verifyJWT = (token, cb) => {
+  const result = {};
   try {
-    const decoded = jwt.verify(token, JWT.secret);
-    Object.assign(result, decoded);
-    return result;
+    const { userId } = jwt.verify(token, JWT.secret);
+    //Object.assign(result, decoded);
+    cb(null, userId);
   } catch (err) {
-    console.log('JWT verify Error', err);
-    result.error = err.message;
-    return result;
+    cb(err);
   }
 };
 module.exports = { generateJWTToken, generateRefreshToken, verifyJWT };

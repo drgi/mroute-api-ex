@@ -146,8 +146,10 @@ const verifyJWTMiddleware = async (req, res, next) => {
   const token = authHeader.replace('Bearer ', '');
   verifyJWT(token, (err, userId) => {
     if (err) {
-      next(err);
+      return next(err);
     }
+    //console.log('User ID Jwt mdlw', userId, 'Error', err?.message);
+
     if (userId) {
       req.authError = null;
       req.userId = userId;

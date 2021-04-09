@@ -14,12 +14,6 @@
   },
   "author": "Dr",
   "license": "ISC",
-  "jest": {
-    "testEnvironment": "node",
-    "coveragePathIgnorePatterns": [
-      "/node_modules/"
-    ]
-  },
   "bugs": {
     "url": "https://github.com/drgi/mroute-api-ex/issues"
   },

@@ -6,7 +6,7 @@ const formDataParser = multer({ storage, fileFilter }).fields([
 ]);
 
 function fileFilter(req, file, cb) {
-  console.log('File Filter', file);
+  //console.log('File Filter', file);
   cb(null, true);
   //cb(new multer.MulterError('Хуевый файл)'));
 }

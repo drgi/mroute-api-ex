@@ -14,9 +14,9 @@ const getUserById = async (id) => {
 const getUserEmailById = async (id) => {
   try {
     const user = await UserModel.findById(id).lean().select('email');
-    return user.email;
+    return user ? user.email : null;
   } catch (err) {
-    console.log('User DB module error', err.message);
+    //console.log('User DB module error', err.message);
     throw err;
   }
 };

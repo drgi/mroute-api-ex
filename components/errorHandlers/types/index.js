@@ -5,6 +5,7 @@ const errorTypes = [
   { name: 'CastError', path: 'mongo.cast' },
   { name: 'AuthError', path: 'auth.error' },
   { name: 'MongoError', path: 'mongo.err' },
+  { name: 'ValidationError', path: 'mongo-valid.err' },
 ];
 
 errorTypes.forEach((e) => {

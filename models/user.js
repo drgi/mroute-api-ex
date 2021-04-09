@@ -35,7 +35,7 @@ const userScheme = mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: '/no-image.jpg',
+    default: 'no-image.jpg',
   },
   myRoutes: {
     type: Array,

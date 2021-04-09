@@ -30,7 +30,7 @@ const changeUserAvatar = async (path, file) => {
     await fs.promises.writeFile(pathToFile, file.buffer);
     return true;
   } catch (err) {
-    console.log('Write file Error: ', err);
+    //console.log('Write file Error: ', err);
     return null;
   }
 };

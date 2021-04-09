@@ -1,30 +1,32 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const JWT_KEY = 'HuiVamVsem2020';
+const { JWT } = require('../config/index');
+const JWT_KEY = JWT.secret;
 
 const auth = async (req, res, next) => {
   const token = req.header('Authorization').replace('Bearer ', '');
   //console.log(token)
-  const decoded = jwt.verify(token, JWT_KEY, (err, decoded) => {
+  let decoded;
+  jwt.verify(token, JWT_KEY, (err, decodedJWT) => {
     if (err) {
-      return res.status(401).send({ error: 'Invalid Token' });
+      return next(err);
     }
-    return decoded;
+    decoded = decodedJWT;
   });
-
+  if (!decoded) return;
   try {
     const user = await User.findOne({
-      _id: decoded._id,
-      'tokens.token': token,
+      _id: decoded.userId,
     });
     if (!user) {
-      throw new Error('Поьзователь не найден');
+      throw new Error('Пользователь не найден');
     }
     req.user = user;
     req.token = token;
     next();
   } catch (e) {
-    return res.status(401).send({ error: e.message });
+    next(e);
+    //return res.status(401).send({ error: e.message });
   }
 };
 

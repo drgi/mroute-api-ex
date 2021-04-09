@@ -1,12 +1,26 @@
 const request = require('supertest');
 const app = require('../../app');
-const { generateJWTToken, cookieParser } = require('./helpers');
-const USER_ID = '5fbd61ca0ff44e41000975e6'; // user andrey_pushkin@mail.ru
+const {
+  generateJWTToken,
+  cookieParser,
+  addUser,
+  removeUsedByEmail,
+} = require('./helpers');
+let USER_ID = '606049da23ca93417c8345e6'; // user userfortest@mail.ru
 const mongoose = require('mongoose');
-const path = require('path');
-const Mail = require('nodemailer/lib/mailer');
 
+const testUser = {
+  email: 'mr_tester2@mail.ru',
+  password: '123456',
+  name: 'Mr. Tester',
+};
+
+beforeAll(async () => {
+  const { _id } = await addUser(testUser);
+  USER_ID = _id;
+});
 afterAll(async () => {
+  await removeUsedByEmail(testUser.email);
   await mongoose.connection.close();
 });
 

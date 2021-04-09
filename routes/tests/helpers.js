@@ -1,7 +1,12 @@
 const UserModel = require('../../models/user');
+const RouteModel = require('../../models/route');
 const jwt = require('jsonwebtoken');
 const { JWT } = require('../../config/');
+const testRoutes = require('./testdata/routes/validForPub');
+const { generateRoutes } = require('./testdata/routes/routes-generator');
 
+// DB
+//User
 async function addUser(newUser) {
   const user = new UserModel(newUser);
   await user.save();
@@ -10,6 +15,20 @@ async function addUser(newUser) {
 
 async function removeUsedByEmail(email) {
   await UserModel.deleteOne({ email });
+}
+
+// RoutesDirs
+async function addTestRoutes(count) {
+  const routes = generateRoutes(count);
+  console.log('Routes', routes);
+  try {
+    for (let route of routes) {
+      const r = new RouteModel(route);
+      await r.save();
+    }
+  } catch (err) {
+    console.log('Route add Error', err);
+  }
 }
 
 function cookieParser(cookie) {
@@ -33,4 +52,10 @@ function generateJWTToken(userId, expired = null) {
   return token;
 }
 
-module.exports = { addUser, removeUsedByEmail, cookieParser, generateJWTToken };
+module.exports = {
+  addUser,
+  removeUsedByEmail,
+  cookieParser,
+  generateJWTToken,
+  addTestRoutes,
+};

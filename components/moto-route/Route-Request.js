@@ -91,6 +91,15 @@ class RouteRequest {
   getRouteImageFiles() {
     return this.files?.routeImages || null;
   }
+  getFileForDelete() {
+    return this.body.file;
+  }
+  getPointId() {
+    return this.body.pointId;
+  }
+  getPointImages() {
+    return this.files?.pointImages;
+  }
 }
 
 module.exports = RouteRequest;

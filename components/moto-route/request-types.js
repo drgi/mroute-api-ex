@@ -69,6 +69,28 @@ const requestTypes = {
       userId: true,
     },
   },
+  '/images/del': {
+    DELETE: {
+      body: ['routeId', 'file'],
+      userId: true,
+    },
+  },
+  '/pointimages': {
+    POST: {
+      body: ['routeId', 'pointId'],
+      files: ['pointImages'],
+    },
+  },
+  '/pointimages/del': {
+    DELETE: {
+      body: ['routeId', 'pointId', 'file'],
+    },
+  },
+  '/point/del': {
+    DELETE: {
+      body: ['routeId', 'pointId'],
+    },
+  },
 };
 
 module.exports = requestTypes;

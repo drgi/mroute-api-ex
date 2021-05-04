@@ -37,10 +37,10 @@ const deleteRouteDir = async (routeId) => {
 };
 const addImagesToRoute = async (routeId, files) => {
   if (!_checkRouteDir(routeId)) {
+    // refactor
     throw new FSError(`Не найдена папка маршрута${routeId}`);
   }
   const imagesDirPath = _getDefaultRouteImagesDirPath(routeId);
-
   if (!imagesDirPath) {
     throw new FSError(
       `Не найдена папка для изображений маршрута с ID ${routeId}`
@@ -53,9 +53,66 @@ const addImagesToRoute = async (routeId, files) => {
   }
   return routeImages;
 };
-const addImagesToPoint = (routeId, pointId, files) => {};
-const deleteImageFromRoute = (routeId, files) => {};
-const deleteImageFromPoint = (routeId, pointId, files) => {};
+
+const writeImagesToPoint = async (routeId, pointId, files) => {
+  if (!_checkRouteDir(routeId)) {
+    throw new FSError(`Не найдена папка маршрута${routeId}`);
+  }
+  const imagesDirPath = await _getDefaultPointImagesDirPath(routeId, pointId);
+  if (!imagesDirPath) {
+    throw new FSError(
+      `Не найдена папка для изображений точек маршрута с ID ${routeId}`
+    );
+  }
+  const pointImages = [];
+  for (let file of files) {
+    const image = await _writeFile(imagesDirPath, file);
+    pointImages.push(image);
+  }
+  return pointImages;
+};
+
+const deleteImageFile = async (routeId, file) => {
+  if (!_checkRouteDir(routeId)) {
+    throw new FSError(`Не найдена папка маршрута${routeId}`);
+  }
+  const imagesDirPath = _getDefaultRouteImagesDirPath(routeId);
+  if (!imagesDirPath) {
+    throw new FSError(
+      `Не найдена папка для изображений маршрута с ID ${routeId}`
+    );
+  }
+  const imageForDelPath = join(DEFAULT_DIR.root, file.path);
+  return await _deleteFile(imageForDelPath);
+};
+
+const deleteImageFromPoint = async (routeId, pointId, file) => {
+  if (!_checkRouteDir(routeId)) {
+    throw new FSError(`Не найдена папка маршрута${routeId}`);
+  }
+  const imagesDirPath = await _getDefaultPointImagesDirPath(routeId, pointId);
+  if (!imagesDirPath) {
+    throw new FSError(
+      `Не найдена папка для изображений точек маршрута с ID ${routeId}`
+    );
+  }
+  const imageForDelPath = join(DEFAULT_DIR.root, file.path);
+  return await _deleteFile(imageForDelPath);
+};
+const deletePointDirectory = async (routeId, pointId) => {
+  if (!_checkRouteDir(routeId)) {
+    throw new FSError(`Не найдена папка маршрута${routeId}`);
+  }
+  const pointDirPath = await _getDefaultPointImagesDirPath(routeId, pointId);
+  if (fs.existsSync(pointDirPath)) {
+    rimRaf(pointDirPath, (err) => {
+      if (err) {
+        throw new FSError(err);
+      }
+    });
+  }
+};
+
 const _checkDefaultDir = () => {
   const path = resolve(DEFAULT_DIR.root, DEFAULT_DIR.routes);
   return fs.existsSync(path);
@@ -75,8 +132,21 @@ const _getDefaultRouteImagesDirPath = (routeId) => {
   );
   return fs.existsSync(path) ? path : null;
 };
-const _writeFile = async (imagesDirPath, file) => {
-  const filename = Date.now() + '.jpg';
+const _getDefaultPointImagesDirPath = async (routeId, pointId) => {
+  const path = join(
+    DEFAULT_DIR.root,
+    DEFAULT_DIR.routes,
+    routeId,
+    'pointimages',
+    pointId
+  );
+  if (!fs.existsSync(path)) {
+    await fs.promises.mkdir(path);
+  }
+  return path;
+};
+const _writeFile = async (imagesDirPath, file, type = 'jpg') => {
+  const filename = Date.now() + '.' + type;
   const pathToWrite = join(imagesDirPath, filename);
   const { buffer } = file;
   await fs.promises.writeFile(pathToWrite, buffer);
@@ -87,5 +157,19 @@ const _writeFile = async (imagesDirPath, file) => {
   file.path = urlPath;
   return file;
 };
+const _deleteFile = async (path) => {
+  if (fs.existsSync(path)) {
+    await fs.promises.unlink(path);
+  }
+  return true;
+};
 
-module.exports = { makeDirForNewRoute, deleteRouteDir, addImagesToRoute };
+module.exports = {
+  makeDirForNewRoute,
+  deleteRouteDir,
+  addImagesToRoute,
+  deleteImageFile,
+  writeImagesToPoint,
+  deleteImageFromPoint,
+  deletePointDirectory,
+};

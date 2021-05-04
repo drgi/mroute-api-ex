@@ -56,6 +56,47 @@ class MongoTransport {
     await route.save({ validateBeforeSave: false });
     return route.routeImages;
   }
+  async deleteImageFromRouteInDb(routeId, image) {
+    const route = await this.model.findById(routeId);
+    route.routeImages = route.routeImages.filter((i) => i.path !== image.path);
+    await route.save({ validateBeforeSave: false });
+    return route.routeImages;
+  }
+  async addImagesToRoutePointInDb(routeId, pointId, pointImg) {
+    const route = await this.model.findById(routeId);
+    let addedImages;
+    route.points = route.points.map((p) => {
+      if (p.id === pointId) {
+        p.images = p.images.concat(pointImg);
+        addedImages = p.images;
+      }
+      return p;
+    });
+    route.markModified('points');
+    await route.save({ validateBeforeSave: false });
+    return addedImages;
+  }
+  async deleteImageFromRoutePoint(routeId, pointId, fileForDelete) {
+    const route = await this.model.findById(routeId);
+    let addedImages;
+    route.points = route.points.map((p) => {
+      if (p.id === pointId) {
+        p.images = p.images.filter((i) => i.path !== fileForDelete.path);
+        addedImages = p.images;
+      }
+      return p;
+    });
+    route.markModified('points');
+    await route.save({ validateBeforeSave: false });
+    return addedImages;
+  }
+  async removePointFromDb(routeId, pointId) {
+    const route = await this.model.findById(routeId);
+    route.points = route.points.filter((p) => p.id !== pointId);
+    route.markModified('points');
+    await route.save({ validateBeforeSave: false });
+    return route.points;
+  }
   // Methods Api
 }
 const mongoTransport = new MongoTransport(RouteModel);
@@ -91,6 +132,26 @@ class MRouteDBApi {
   }
   async addRouteImagesToDb(routeId, routeImages) {
     return await this.dbApi.addRouteImagesToRouteById(routeId, routeImages);
+  }
+  async deleteImageFromRouteInDb(routeId, image) {
+    return await this.dbApi.deleteImageFromRouteInDb(routeId, image);
+  }
+  async addImagesToRoutePointInDb(routeId, pointId, fileForDelete) {
+    return await this.dbApi.addImagesToRoutePointInDb(
+      routeId,
+      pointId,
+      fileForDelete
+    );
+  }
+  async deleteImageFromPointInDb(routeId, pointId, fileForDelete) {
+    return await this.dbApi.deleteImageFromRoutePoint(
+      routeId,
+      pointId,
+      fileForDelete
+    );
+  }
+  async removePointFromRouteInDb(routeId, pointId) {
+    return await this.dbApi.removePointFromDb(routeId, pointId);
   }
   // Api Methods For works with Routes
 }

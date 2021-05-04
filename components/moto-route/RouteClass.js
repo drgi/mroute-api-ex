@@ -2,6 +2,10 @@ const {
   deleteRouteDir,
   makeDirForNewRoute,
   addImagesToRoute,
+  deleteImageFile,
+  writeImagesToPoint,
+  deleteImageFromPoint,
+  deletePointDirectory,
 } = require('./route.fs');
 const mRouteDBApi = require('./RouteDB.class');
 
@@ -68,6 +72,60 @@ class MRoute {
     const routeImages = await addImagesToRoute(routeId, imageFiles);
     console.log('RouteImages', routeImages);
     return await this.dbApi.addRouteImagesToDb(routeId, routeImages);
+  }
+  async deleteImageFromRoute() {
+    const userId = this.request.getUserId();
+    const routeId = this.request.getRouteId();
+    const fileForDelete = this.request.getFileForDelete();
+    const checkRoute = this.dbApi.checkRoute(routeId, userId);
+    if (!checkRoute) {
+      throw new Error('Маршрут не создан или вы не являетесь автором:(');
+    }
+    await deleteImageFile(routeId, fileForDelete);
+    return await this.dbApi.deleteImageFromRouteInDb(routeId, fileForDelete);
+  }
+  async addImagesToRoutePoint() {
+    const userId = this.request.getUserId();
+    const routeId = this.request.getRouteId();
+    const pointId = this.request.getPointId();
+    const imageFiles = this.request.getPointImages();
+    const checkRoute = this.dbApi.checkRoute(routeId, userId);
+    if (!checkRoute) {
+      throw new Error('Маршрут не создан или вы не являетесь автором:(');
+    }
+    const pointImages = await writeImagesToPoint(routeId, pointId, imageFiles);
+    return await this.dbApi.addImagesToRoutePointInDb(
+      routeId,
+      pointId,
+      pointImages
+    );
+  }
+  async removeImageFromRoutePoint() {
+    const userId = this.request.getUserId();
+    const routeId = this.request.getRouteId();
+    const pointId = this.request.getPointId();
+    const fileForDelete = this.request.getFileForDelete();
+    const checkRoute = this.dbApi.checkRoute(routeId, userId);
+    if (!checkRoute) {
+      throw new Error('Маршрут не создан или вы не являетесь автором:(');
+    }
+    await deleteImageFromPoint(routeId, pointId, fileForDelete);
+    return await this.dbApi.deleteImageFromPointInDb(
+      routeId,
+      pointId,
+      fileForDelete
+    );
+  }
+  async removePointFromRoute() {
+    const userId = this.request.getUserId();
+    const routeId = this.request.getRouteId();
+    const pointId = this.request.getPointId();
+    const checkRoute = this.dbApi.checkRoute(routeId, userId);
+    if (!checkRoute) {
+      throw new Error('Маршрут не создан или вы не являетесь автором:(');
+    }
+    await deletePointDirectory(routeId, pointId);
+    return await this.dbApi.removePointFromRouteInDb(routeId, pointId);
   }
 }
 //const mRoute = new MRoute();

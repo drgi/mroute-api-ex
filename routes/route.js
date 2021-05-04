@@ -1,16 +1,16 @@
 const express = require('express');
 const { verifyJWTMiddleware } = require('../components/auth');
 const router = express.Router();
-const RouteModel = require('../models/route');
-const UserModel = require('../models/user');
+//const RouteModel = require('../models/route');
+//const UserModel = require('../models/user');
 
 const routeUpload = require('../middleware/routeupload');
 const editRouteUpload = require('../middleware/editrouteupload');
 
-const saveFiles = require('../middleware/savefiles');
-const updateRoute = require('../middleware/request-route-for-update');
+//const saveFiles = require('../middleware/savefiles');
+//const updateRoute = require('../middleware/request-route-for-update');
 
-const auth = require('../middleware/auth');
+//const auth = require('../middleware/auth');
 ////////////// new
 const RouteRequest = require('../components/moto-route/Route-Request');
 const MRoute = require('../components/moto-route');
@@ -19,7 +19,7 @@ router.use(function timeLog(req, res, next) {
   console.log('Запрос на route Time: ', Date.now());
   next();
 });
-
+// Get Route cards
 router.post('/', async (req, res, next) => {
   //1 Определить, запрос, если пустой вернуть по новой дате
   //2 Распарсить запрос, создать обЪект для запроса
@@ -88,7 +88,7 @@ router.post('/adddraft', verifyJWTMiddleware, async (req, res, next) => {
   //3. Сохранить в базе, ответить клиенту ИД, название
 });
 //Добавление маршрута старый эндпоинт
-router.post('/add', auth, routeUpload, async (req, res) => {
+router.post('/add', verifyJWTMiddleware, routeUpload, async (req, res) => {
   console.log(req.body);
   req.body.author = {
     name: req.user.name,
@@ -140,7 +140,7 @@ router.post('/add', auth, routeUpload, async (req, res) => {
     console.log(e);
   }
 });
-
+// Get Full Route Data by ID
 router.get('/:routeId', async (req, res, next) => {
   console.log(req.params);
   // if (!req.params.routeId) {
@@ -162,6 +162,7 @@ router.get('/:routeId', async (req, res, next) => {
     next(err);
   }
 });
+// Delete Route by ID
 router.delete('/:routeId', verifyJWTMiddleware, async (req, res, next) => {
   //проверить автора маршрута
   //[x] Удаление ПАПОК!!!!!!
@@ -193,7 +194,8 @@ router.delete('/:routeId', verifyJWTMiddleware, async (req, res, next) => {
   //   next(e);
   // }
 });
-router.put('/add/:routeId', auth, async (req, res, next) => {
+// Add changes ad publicate Route
+router.put('/add/:routeId', verifyJWTMiddleware, async (req, res, next) => {
   try {
     const request = new RouteRequest(req);
     //console.dir({ request }, { depth: null });
@@ -257,11 +259,11 @@ router.put('/add/:routeId', auth, async (req, res, next) => {
 });
 //Опубликовать маршрут
 ///////////////////////////////////////
-router.get('/submitdraft', auth, (req, res) => {
-  //1. Найти маршрут в базе
-  //2. Валидировать
-  //3. Сохранить с валидацией
-});
+// router.get('/submitdraft', auth, (req, res) => {
+//   //1. Найти маршрут в базе
+//   //2. Валидировать
+//   //3. Сохранить с валидацией
+// });
 
 //////Добавление и удаление файлов к маршруту
 router.post(
@@ -308,105 +310,154 @@ router.post(
     //3. Вернуть массив с путями клиенту
   }
 );
-router.delete('/images/del', (req, res) => {
+router.delete('/images/del', verifyJWTMiddleware, async (req, res, next) => {
+  try {
+    const request = new RouteRequest(req);
+    const mroute = new MRoute(request);
+    const routeImages = await mroute.deleteImageFromRoute();
+    console.log('Delete image: ', routeImages);
+    res.status(200).json({ routeImages, message: 'Файл удален' });
+  } catch (err) {
+    console.log('Route image Delete Error: ', err);
+    next(err);
+  }
+
   //1. Найти по ИД в базе
-  RouteModel.findById(req.body.routeId, function (err, route) {
-    if (err || !route) {
-      return res.status(400).json({ message: 'Маршрут не найден' });
-    }
-    if (route.deleteFile(req.body.file)) {
-      route.save({ validateBeforeSave: false }, function (err, route) {
-        if (err) {
-          console.log(err);
-          return res.status(400).json({ message: 'Ошибка сохранения' });
-        }
-        if (route) {
-          res
-            .status(200)
-            .json({ routeImages: route.routeImages, message: 'Файл удален' });
-        }
-      });
-    }
-  });
+  // RouteModel.findById(req.body.routeId, function (err, route) {
+  //   if (err || !route) {
+  //     return res.status(400).json({ message: 'Маршрут не найден' });
+  //   }
+  //   if (route.deleteFile(req.body.file)) {
+  //     route.save({ validateBeforeSave: false }, function (err, route) {
+  //       if (err) {
+  //         console.log(err);
+  //         return res.status(400).json({ message: 'Ошибка сохранения' });
+  //       }
+  //       if (route) {
+  //         res
+  //           .status(200)
+  //           .json({ routeImages: route.routeImages, message: 'Файл удален' });
+  //       }
+  //     });
+  //   }
+  // });
   //2. Удалить файлы
   //3. фильтрануть массив с путями
   //3. Вернуть массив с путями клиенту
 });
-router.post('/pointimages', auth, editRouteUpload, (req, res) => {
-  //1. Найти по ИД в базе
-  RouteModel.findById(req.body.routeId, function (err, route) {
-    if (err) {
-      return res
-        .status(400)
-        .json({ message: 'Маршрут не найден, создайте черновик' });
+
+// Add and Deleting Images to Route Point
+router.post(
+  '/pointimages',
+  verifyJWTMiddleware,
+  editRouteUpload,
+  async (req, res, next) => {
+    //1. Найти по ИД в базе
+    try {
+      const request = new RouteRequest(req);
+      const mroute = new MRoute(request);
+      const pointImages = await mroute.addImagesToRoutePoint();
+      res.status(200).json({ pointImages, message: 'Файлы добавлены' });
+    } catch (err) {
+      console.log('Point images Add Error: ', err);
+      next(err);
     }
-    let files = route.uploadFiles(req.files, req.body.pointId);
-    route.points = route.points.map((point) => {
-      if (point.id == req.body.pointId) {
-        point.images = point.images.concat(files);
-        files = point.images;
-        return point;
-      }
-      return point;
-    });
-    route.markModified('points');
-    route.save({ validateBeforeSave: false }, function (err, route) {
-      if (err) {
-        console.log(err);
-        return res.status(400).json({ message: 'Ошибка сохранения' });
-      }
-      if (route) {
-        res
-          .status(200)
-          .json({ pointImages: files, message: 'Файлы добавлены' });
-      }
-    });
-  });
-  //2. Записать файлы вернуть массив с путями
-  //3. Вернуть массив с путями клиенту
-});
-router.delete('/pointimages/del', async (req, res) => {
-  // console.log(req.body)
-  //1. Найти по ИД в базе
-  let images = [];
-  let route = await RouteModel.findById(req.body.routeId);
-  route.points = route.points.map((point) => {
-    if (point.id == req.body.pointId) {
-      images = point.images = point.images.filter(
-        (image) => image.path != req.body.file.path
-      );
-      return point;
-    }
-    return point;
-  });
-  route.markModified('points');
-  await route.save({ validateBeforeSave: false });
-  if (route) {
-    console.log(route.points[0].images);
-    res.status(200).json({ pointImages: images, message: 'Файл удален' });
+
+    // RouteModel.findById(req.body.routeId, function (err, route) {
+    //   if (err) {
+    //     return res
+    //       .status(400)
+    //       .json({ message: 'Маршрут не найден, создайте черновик' });
+    //   }
+    //   let files = route.uploadFiles(req.files, req.body.pointId);
+    //   route.points = route.points.map((point) => {
+    //     if (point.id == req.body.pointId) {
+    //       point.images = point.images.concat(files);
+    //       files = point.images;
+    //       return point;
+    //     }
+    //     return point;
+    //   });
+    //   route.markModified('points');
+    //   route.save({ validateBeforeSave: false }, function (err, route) {
+    //     if (err) {
+    //       console.log(err);
+    //       return res.status(400).json({ message: 'Ошибка сохранения' });
+    //     }
+    //     if (route) {
+    //       res
+    //         .status(200)
+    //         .json({ pointImages: files, message: 'Файлы добавлены' });
+    //     }
+    //   });
+    // });
+    //2. Записать файлы вернуть массив с путями
+    //3. Вернуть массив с путями клиенту
   }
-});
+);
+router.delete(
+  '/pointimages/del',
+  verifyJWTMiddleware,
+  async (req, res, next) => {
+    // console.log(req.body)
+    //1. Найти по ИД в базе
+    try {
+      const request = new RouteRequest(req);
+      const mroute = new MRoute(request);
+      const pointImages = await mroute.removeImageFromRoutePoint();
+      res.status(200).json({ pointImages, message: 'Файл удален' });
+    } catch (err) {
+      console.log('Image delete from point:', err);
+      next(err);
+    }
+    // let images = [];
+    // let route = await RouteModel.findById(req.body.routeId);
+    // route.points = route.points.map((point) => {
+    //   if (point.id == req.body.pointId) {
+    //     images = point.images = point.images.filter(
+    //       (image) => image.path != req.body.file.path
+    //     );
+    //     return point;
+    //   }
+    //   return point;
+    // });
+    // route.markModified('points');
+    // await route.save({ validateBeforeSave: false });
+    // if (route) {
+    //   console.log(route.points[0].images);
+    //   res.status(200).json({ pointImages: images, message: 'Файл удален' });
+    // }
+  }
+);
 // Удаление точки маршута и папки точки
-router.delete('/point/del', async (req, res) => {
-  console.log(req.body);
-  //1 Найти в базе
-  let route;
+router.delete('/point/del', verifyJWTMiddleware, async (req, res, next) => {
   try {
-    route = await RouteModel.findById(req.body.routeId);
-    if (!route) {
-      throw {
-        message: 'Маршрут не найден на сервере, возможно вы его не создали?',
-      };
-    }
-  } catch (e) {
-    console.log(e);
-    return res.status(200).json(e);
+    const request = new RouteRequest(req);
+    const mroute = new MRoute(request);
+    const points = await mroute.removePointFromRoute();
+    return res.status(200).json({ points, message: 'Точка удалена' });
+  } catch (err) {
+    next(err);
   }
-  //2 Сделать метод в модели по удалению папки и из массива точек
-  if (route.deletePoint(req.body.pointId)) {
-    route.save({ validateBeforeSave: false });
-    return res.status(200).json({ message: 'Точка удалена' });
-  }
-  return res.status(200);
+
+  //1 Найти в базе
+  // let route;
+  // try {
+  //   route = await RouteModel.findById(req.body.routeId);
+  //   if (!route) {
+  //     throw {
+  //       message: 'Маршрут не найден на сервере, возможно вы его не создали?',
+  //     };
+  //   }
+  // } catch (e) {
+  //   console.log(e);
+  //   return res.status(200).json(e);
+  // }
+  // //2 Сделать метод в модели по удалению папки и из массива точек
+  // if (route.deletePoint(req.body.pointId)) {
+  //   route.save({ validateBeforeSave: false });
+  //   return res.status(200).json({ message: 'Точка удалена' });
+  // }
+  // return res.status(200);
 });
 module.exports = router;
